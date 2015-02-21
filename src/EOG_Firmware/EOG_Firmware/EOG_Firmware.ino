@@ -13,6 +13,7 @@
 // Arduino Source
 
 #include <Arduino.h>
+#include <SPI.h>
 
 // Local Modules
 
@@ -44,6 +45,10 @@ void setup()
   // Initialize the Analog Module
   
   Analog_Initialize(ADC_RANGE);
+  
+  // Open Serial communications
+  
+  Serial.begin(BAUD_RATE);
 }
 
 /******************************************************************************

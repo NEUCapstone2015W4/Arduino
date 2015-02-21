@@ -21,18 +21,32 @@ typedef enum
   ANALOG_10_TO_10,
 } Analog_Mode_t;
 
-// ***** Function Headers *****************************************************
+// ADC Channels
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+typedef enum
+{
+  ANALOG_CH0,
+  ANALOG_CH1,
+  ANALOG_CH2,
+  ANALOG_CH3,
+  ANALOG_CH4,
+  ANALOG_CH5,
+  ANALOG_CH6,
+  ANALOG_CH7,
+  
+  ANALOG_NUM_CHANNELS
+} Analog_Channel_t;
+
+// ***** Function Headers *****************************************************
 
 // Initialization functions
 
-void Analog_Initialize (Analog_Mode_t);
+void Analog_Initialize (Analog_Mode_t zeMode);
 
-#ifdef __cplusplus
-}
-#endif
+// Read Functions
+
+void Analog_Update ();
+signed long Analog_ReadCounts (Analog_Channel_t zeChannel);
+float Analog_ReadVolts (Analog_Channel_t zeChannel);
 
 #endif    // !defined _ANALOG_H
