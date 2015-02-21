@@ -24,7 +24,7 @@
 // Config flags - placed here for easy updating during development
 
 #define ADC_RANGE  ANALOG_10_TO_10
-#define BAUD_RATE  9600u
+#define BAUD_RATE  115200
 
 // ***** Function Definitions *************************************************
 
@@ -64,5 +64,18 @@ void setup()
 
 void loop()
 {
+  int i;
   
+  // Update Analog readings
+  
+  Analog_Update();
+  
+  // DEBUG: Print analog voltages to terminal
+  
+  for(i=0; i<8; i++) {
+    Serial.print(Analog_ReadVolts((Analog_Channel_t)i), 5);
+    Serial.print(",");
+  }
+  Serial.print("\r\n");
+  delay(1000);  
 }
