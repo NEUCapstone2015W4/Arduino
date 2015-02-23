@@ -176,23 +176,37 @@ static int Command__GetCmd (String znCmd)
 *    /ret        void
 *
 ******************************************************************************/
-void Command_Execute (String znCmd, String znArg)
+void Command_Execute (String znInput)
 {
   int xhCmdIndex;
+  String xnCmd, xnArgs;
+  
+  // Split out the argument string
+  
+  if (znInput.indexOf(' ') == -1)
+  {
+    xnCmd = znInput;
+    xnArgs = ""; 
+  }
+  else
+  {
+    xnCmd = znInput.substring(0, znInput.indexOf(" "));
+    xnArgs = znInput.substring(znInput.lastIndexOf(" ") + 1);
+  }
   
   // Try to find the given command
   
-  xhCmdIndex = Command__GetCmd(znCmd);
+  xhCmdIndex = Command__GetCmd(xnCmd);
   
   // Execute or display error
   
   if (xhCmdIndex == -1)
   {
-    Serial.println("Invalid Command!");
+    Serial.print("Invalid Command");
   }
   else
   {
-    Command__masCommands[xhCmdIndex].spvCallback(znArg);
+    Command__masCommands[xhCmdIndex].spvCallback(xnArgs);
   }
 }
 
@@ -217,9 +231,9 @@ void serialEvent() {
     
     char xcInChar = (char)Serial.read();
     
-    // Add it to the buffer
+    // Add it to the buffer (if alpha-numeric)
     
-    if (isalnum(xcInChar))
+    if (!iscntrl(xcInChar))
     {
       Command_mnCmdBuffer += xcInChar;
     }
@@ -233,7 +247,7 @@ void serialEvent() {
     
     if (xcInChar == '\n') 
     {
-      Command_Execute(Command_mnCmdBuffer, "Hello, World!");
+      Command_Execute(Command_mnCmdBuffer);
       Command_mnCmdBuffer = "";
     } 
   }
@@ -246,5 +260,5 @@ void serialEvent() {
 static void Cmd__Test(String znArg)
 {
   
-  Serial.print(znArg);
+  Serial.println(znArg);
 }

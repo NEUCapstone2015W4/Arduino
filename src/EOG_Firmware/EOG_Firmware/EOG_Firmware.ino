@@ -1,6 +1,6 @@
 /******************************************************************************
 *
-*    /file    EOG_Firmware.c
+*    /file    EOG_Firmware.ino
 *
 *    /desc    Main file for EOG Arduino application.
 *
