@@ -15,7 +15,7 @@
 
 // State of the on board range jumper
 
-typedef enum
+typedef enum Analog_Mode_e
 {
   ANALOG_5_TO_5,
   ANALOG_10_TO_10,
@@ -23,7 +23,7 @@ typedef enum
 
 // ADC Channels
 
-typedef enum
+typedef enum Analog_Channel_e
 {
   ANALOG_CH0,
   ANALOG_CH1,
