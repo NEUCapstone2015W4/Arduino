@@ -1,6 +1,6 @@
 /******************************************************************************
 *
-*    /file    Command.c
+*    /file    Command.cpp
 *
 *    /desc    The Command module creates a very simple command interface via
 *             the Serial port through witch a user or application can talk to
@@ -12,7 +12,7 @@
 *             arguments. This will allow dynamic addition of funtionality as 
 *             needed across the development process.
 *
-*    /log     2/20/15  gcg - Initial release.
+*    /log     2/23/15  gcg - Initial release.
 *
 ******************************************************************************/
 
@@ -233,10 +233,18 @@ void serialEvent() {
     
     if (xcInChar == '\n') 
     {
-      Command_Execute(Command_mnCmdBuffer, "");
+      Command_Execute(Command_mnCmdBuffer, "Hello, World!");
       Command_mnCmdBuffer = "";
     } 
   }
 }
 
 // ***** Command Definitions *************************************************
+
+// DEBUG: Test command, print the argument string
+
+static void Cmd__Test(String znArg)
+{
+  
+  Serial.print(znArg);
+}

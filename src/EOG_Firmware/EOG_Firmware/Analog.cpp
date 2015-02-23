@@ -1,6 +1,6 @@
 /******************************************************************************
 *
-*    /file    Analog.c
+*    /file    Analog.cpp
 *
 *    /desc    The Precision Voltage Shield is an 8-channel, 16-bit analog-
 *             to-digital converter that plugs on top of an Arduino micro
