@@ -28,6 +28,10 @@
 
 // ***** Local Definitions ****************************************************
 
+// DEBUG - Tags for quick changes during development
+
+#define ECHO  true
+
 // Max number of commands
 
 #define MAX_NUM_CMDS     64
@@ -45,15 +49,18 @@ static Command_t Command__masCommands[MAX_NUM_CMDS];
 
 // Command buffer
 
-static String Command_mnCmdBuffer;
+static String Command__mnCmdBuffer;
 
 // ***** Local Funtions *******************************************************
 
 static int Command__GetCmd(String znCmd);
+static void Command__Execute(String znInput);
+
 
 // Commands
 
 static void Cmd__Test(String znArg);
+
 
 // ***** Function Definitions *************************************************
 
@@ -90,12 +97,8 @@ void Command_Initialize(long zwBaud)
   
   // Clear the buffer
   
-  Command_mnCmdBuffer.reserve(CMD_BUFFER_SIZE);
-  Command_mnCmdBuffer = "";
-  
-  // Add any commands
-  
-  Command_AddCmd("test", Cmd__Test);
+  Command__mnCmdBuffer.reserve(CMD_BUFFER_SIZE);
+  Command__mnCmdBuffer = "";
   
   // Open Serial communications
   
@@ -165,7 +168,7 @@ static int Command__GetCmd (String znCmd)
 
 /******************************************************************************
 *
-*    /name       Command_Execute
+*    /name       Command__Execute
 *
 *    /purpose    Searches the command table for the given string, executes
 *                its associated callback.
@@ -176,7 +179,7 @@ static int Command__GetCmd (String znCmd)
 *    /ret        void
 *
 ******************************************************************************/
-void Command_Execute (String znInput)
+static void Command__Execute (String znInput)
 {
   int xhCmdIndex;
   String xnCmd, xnArgs;
@@ -221,7 +224,8 @@ void Command_Execute (String znInput)
 *    /ret        void
 *
 ******************************************************************************/
-void serialEvent() {
+void serialEvent() 
+{
   
   // Check for multiple characters
   
@@ -235,30 +239,23 @@ void serialEvent() {
     
     if (!iscntrl(xcInChar))
     {
-      Command_mnCmdBuffer += xcInChar;
+      Command__mnCmdBuffer += xcInChar;
     }
     
-    // Print the the character
+    // Print the the character (if echo is enabled)
     
-    Serial.print(xcInChar);
+    if (ECHO)
+    {
+      Serial.print(xcInChar);
+    }
     
     // If the incoming character is a newline, attempt
     // to execute it
     
     if (xcInChar == '\n') 
     {
-      Command_Execute(Command_mnCmdBuffer);
-      Command_mnCmdBuffer = "";
+      Command__Execute(Command__mnCmdBuffer);
+      Command__mnCmdBuffer = "";
     } 
   }
-}
-
-// ***** Command Definitions *************************************************
-
-// DEBUG: Test command, print the argument string
-
-static void Cmd__Test(String znArg)
-{
-  
-  Serial.println(znArg);
 }

@@ -58,11 +58,11 @@ static Analog_Mode_t Analog__meMode;
 
 // Unformatted, raw data from ADC
 
-static byte Analog__mucRawData[TOTAL_RAW_BYTES];
+static byte Analog__maucRawData[TOTAL_RAW_BYTES];
 
 // ADC count values for each channel
 
-static signed long Analog__mlParsedData[ANALOG_NUM_CHANNELS];
+static signed long Analog__malParsedData[ANALOG_NUM_CHANNELS];
 
 
 // ***** Local Funtions *******************************************************
@@ -137,7 +137,7 @@ static void Analog__ReadRaw()
   // Store raw data
   
   while (xucBytesToRead > 0) {
-    Analog__mucRawData[TOTAL_RAW_BYTES - xucBytesToRead] = SPI.transfer(0x00);
+    Analog__maucRawData[TOTAL_RAW_BYTES - xucBytesToRead] = SPI.transfer(0x00);
     xucBytesToRead--;
   }
   
@@ -173,8 +173,8 @@ void Analog_Update()
     
     // Write value
     
-    Analog__mlParsedData [xwChannel] = 
-     (Analog__mucRawData[xucCurrByte] << 8) + Analog__mucRawData[xucCurrByte];
+    Analog__malParsedData [xwChannel] = 
+     (Analog__maucRawData[xucCurrByte] << 8) + Analog__maucRawData[xucCurrByte];
     
     // Update raw byte index
     
@@ -198,7 +198,7 @@ signed long Analog_ReadCounts (Analog_Channel_t zeChannel)
   
   // Simply return the internal static variable
   
-  return Analog__mlParsedData[zeChannel];
+  return Analog__malParsedData[zeChannel];
 }
 
 /******************************************************************************
@@ -221,12 +221,14 @@ float Analog_ReadVolts (Analog_Channel_t zeChannel)
   if (Analog__meMode == ANALOG_5_TO_5)
   {
     
-    return (float)Analog__mlParsedData[zeChannel] * ANALOG_SCALE_10;
+    return (float)Analog__malParsedData[zeChannel] * ANALOG_SCALE_10;
   }
   else    // Analog__meMode == ANALOG_10_TO_10
   {
     
-    return (float)Analog__mlParsedData[zeChannel] * ANALOG_SCALE_20;
+    return (float)Analog__malParsedData[zeChannel] * ANALOG_SCALE_20;
   }
 }
 
+// ***** Command Definitions **************************************************
+  

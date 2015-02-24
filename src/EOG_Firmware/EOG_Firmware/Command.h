@@ -32,8 +32,4 @@ typedef struct Command_s
 void Command_Initialize(long zwBaud);
 void Command_AddCmd(String znName, Command_Function_t zpvCallback);
 
-// Execution Functions
-
-void Command_Execute(String znInput);
-
 #endif    // !defined _COMMAND_H

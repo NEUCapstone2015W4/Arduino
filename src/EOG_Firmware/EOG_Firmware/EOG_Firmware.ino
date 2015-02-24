@@ -26,8 +26,8 @@
 
 #define ADC_RANGE    ANALOG_10_TO_10
 #define BAUD_RATE    115200
-#define HORIZONOTAL  ANALOG_CH4
-#define VERTICAL     ANALOG_CH5
+#define HORIZONTAL  ANALOG_CH5
+#define VERTICAL     ANALOG_CH4
 
 // ***** Function Definitions *************************************************
 
@@ -45,13 +45,13 @@
 void setup()
 {
   
+  // Initialize Command Module - must be first for command table int
+  
+  Command_Initialize((long)BAUD_RATE);
+  
   // Initialize the Analog Module
   
   Analog_Initialize(ADC_RANGE);
-  
-  // Initialize Command Module
-  
-  Command_Initialize((long)BAUD_RATE);
 }
 
 /******************************************************************************
@@ -74,15 +74,14 @@ void loop()
   Analog_Update();
   
   // DEBUG: Print analog voltages to terminal
-  #if 0
-  for(i=0; i<8; i++) 
-  {
-    Serial.print(Analog_ReadVolts((Analog_Channel_t)i), 5);
-    Serial.print(",");
-  }
+
+  Serial.print("VERTICAL: ");
+  Serial.print(Analog_ReadVolts(VERTICAL), 5);
+  
+  Serial.print("    HORIZONTAL: ");
+  Serial.print(Analog_ReadVolts(HORIZONTAL), 5);
   
   Serial.print("\r\n");
 
-  #endif
   delay(1000);  
 }
