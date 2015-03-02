@@ -83,7 +83,6 @@ static void Analog__ReadRaw();
 *    /ret        void
 *
 ******************************************************************************/
-
 void Analog_Initialize (Analog_Mode_t zeMode)
 {
   
@@ -118,7 +117,6 @@ void Analog_Initialize (Analog_Mode_t zeMode)
 *    /ret        void
 *
 ******************************************************************************/
-
 static void Analog__ReadRaw()
 {
   unsigned char xucBytesToRead = TOTAL_RAW_BYTES;
@@ -157,7 +155,6 @@ static void Analog__ReadRaw()
 *    /ret        void
 *
 ******************************************************************************/
-
 void Analog_Update()
 {
   unsigned char xucCurrByte = 0;

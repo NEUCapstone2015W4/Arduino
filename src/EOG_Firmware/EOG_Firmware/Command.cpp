@@ -100,6 +100,10 @@ void Command_Initialize(long zwBaud)
   Command__mnCmdBuffer.reserve(CMD_BUFFER_SIZE);
   Command__mnCmdBuffer = "";
   
+  // Add test commands
+  
+  Command_AddCmd("test", Cmd__Test);
+  
   // Open Serial communications
   
   Serial.begin(zwBaud);
@@ -258,4 +262,14 @@ void serialEvent()
       Command__mnCmdBuffer = "";
     } 
   }
+}
+
+// Test Command
+
+static void Cmd__Test(String znArg)
+{
+  
+  // Print a string to the Serial port
+ 
+  Serial.println("Hello, World!"); 
 }

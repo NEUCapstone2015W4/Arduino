@@ -19,6 +19,7 @@
 
 #include "Analog.h"
 #include "Command.h"
+#include "Direction.h"
 
 // ***** Local Definitions ****************************************************
 
@@ -26,7 +27,7 @@
 
 #define ADC_RANGE    ANALOG_10_TO_10
 #define BAUD_RATE    115200
-#define HORIZONTAL  ANALOG_CH5
+#define HORIZONTAL   ANALOG_CH5
 #define VERTICAL     ANALOG_CH4
 
 // ***** Function Definitions *************************************************
@@ -52,6 +53,10 @@ void setup()
   // Initialize the Analog Module
   
   Analog_Initialize(ADC_RANGE);
+  
+  // Initialize the direction module
+  
+  Direction_Initialize();
 }
 
 /******************************************************************************
@@ -69,19 +74,33 @@ void loop()
 {
   int i;
   
-  // Update Analog readings
+#if 0
   
-  Analog_Update();
+  // Update Direction reading
+  
+  Direction_Update();
+  
+  // DEBUG: Broadcast Direction
+  
+  Direction_BroadcastState();
+  
+  // DEBUG: Long delay for now
+  
+  delay(5000);
+  
+#else
   
   // DEBUG: Print analog voltages to terminal
-
+    
   Serial.print("VERTICAL: ");
   Serial.print(Analog_ReadVolts(VERTICAL), 5);
   
   Serial.print("    HORIZONTAL: ");
   Serial.print(Analog_ReadVolts(HORIZONTAL), 5);
   
-  Serial.print("\r\n");
-
+  Serial.print("\r\n");  
+  
   delay(1000);  
+  
+#endif
 }

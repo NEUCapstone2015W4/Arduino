@@ -21,17 +21,18 @@ typedef enum Direction_e
   DIRECTION_UP,
   DIRECTION_DOWN,
   DIRECTION_LEFT,
-  DIRECTION_RIGHT
+  DIRECTION_RIGHT,
+  
+  DIRECTION_MAX
 } Direction_t;
 
-// The direcition state - contains the last known state and the volatage
-// reading from the appropriate signal
+// The channel state - contains the current and previous voltage
 
-typedef struct Direction_State_s
+typedef struct Direction_Channel_s
 {
-  Direction_t seDirection;
-  float       sfVoltage;
-} Direction_State_t;
+  float       sfCurrVoltage;
+  float       sfPrevVoltage;
+} Direction_Channel_t;
 
 // ***** Function Headers *****************************************************
 
@@ -46,5 +47,6 @@ void Direction_Update();
 // Get Functions
 
 Direction_t Direction_GetState();
+void Direction_BroadcastState();
 
 #endif    // !defined _DIRECTION_H
