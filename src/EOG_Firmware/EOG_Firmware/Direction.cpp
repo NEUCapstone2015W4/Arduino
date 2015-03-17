@@ -11,6 +11,7 @@
 *             translate Voltage -> Motion
 *
 *    /log     2/23/15  gcg - Initial release.
+*             3/17/15  gcg - Added Calibration commands.
 *
 ******************************************************************************/
 
@@ -30,30 +31,32 @@
 
 // DEBUG - For now, all detection thresholds are constant values, in Volts
 
-#define DELTA_UP     0.060
-#define DELTA_DOWN   0.030
-#define DELTA_RIGHT  0.090
-#define DELTA_LEFT   0.070
+#define DELTA_UP     1.0f //0.068f
+#define DELTA_DOWN   1.0f //0.075f
+#define DELTA_RIGHT  0.075f
+#define DELTA_LEFT   0.075f
 
 #define HORIZONTAL   ANALOG_CH5
 #define VERTICAL     ANALOG_CH4
 
+#define DEBUG        0
+
+#define THRESHOLD_SCALEDOWN   0.9f
+
 // Serial Direction characters
 
-static const String Direction__mkanSerialChars[DIRECTION_MAX] =
-{
-  "i",
-  "u",
-  "d",
-  "l",
-  "r"
-};
+static String Direction__manSerialChars[DIRECTION_MAX];
 
 // ***** Local Variables ******************************************************
 
 // Detection thresholds
 
 static float Direction__mafThreshold[DIRECTION_MAX];
+
+// Resting Voltaages for both channels
+
+static float Direction__mfUpDownResting;
+static float Direction__mfLeftRightResting;
 
 // Channel structures - store currently detected and previous voltage by 
 // channel.
@@ -78,6 +81,14 @@ static float Direction__WeightLeftRight();
 
 static void Direction__SetState(Direction_t zeDir);
 
+// Commands
+
+static void Cmd__Idle(String znArg);
+static void Cmd__Up(String znArg);
+static void Cmd__Down(String znArg);
+static void Cmd__Left(String znArg);
+static void Cmd__Right(String znArg);
+
 // ***** Function Definitions *************************************************
 
 /******************************************************************************
@@ -96,11 +107,19 @@ void Direction_Initialize ()
   
   // DEBUG - Set the thresholds to the predefined values.
   
-  Direction__mafThreshold[DIRECTION_NONE] = 0;
-  Direction__mafThreshold[DIRECTION_UP] = DELTA_UP;
-  Direction__mafThreshold[DIRECTION_DOWN] = DELTA_DOWN;
-  Direction__mafThreshold[DIRECTION_LEFT] = DELTA_LEFT;
-  Direction__mafThreshold[DIRECTION_RIGHT] = DELTA_RIGHT;
+  //Direction__mafThreshold[DIRECTION_NONE] = 0;
+  //Direction__mafThreshold[DIRECTION_UP] = DELTA_UP;
+  //Direction__mafThreshold[DIRECTION_DOWN] = DELTA_DOWN;
+  //Direction__mafThreshold[DIRECTION_LEFT] = DELTA_LEFT;
+  //Direction__mafThreshold[DIRECTION_RIGHT] = DELTA_RIGHT;
+  
+  // Set direction outputs
+  
+  Direction__manSerialChars[DIRECTION_NONE] = "i";
+  Direction__manSerialChars[DIRECTION_UP] = "u";
+  Direction__manSerialChars[DIRECTION_DOWN] = "d";
+  Direction__manSerialChars[DIRECTION_LEFT] = "l";
+  Direction__manSerialChars[DIRECTION_RIGHT] = "r";
   
   // The initial mode should always be looking straight ahead. Set both 
   // channels and direction state accordingly.
@@ -112,6 +131,14 @@ void Direction_Initialize ()
   Direction__msLeftRight.sfPrevVoltage = Analog_ReadVolts(HORIZONTAL);
   
   Direction__meState = DIRECTION_NONE;
+  
+  // Add Direction Commands
+  
+  Command_AddCmd("i", Cmd__Idle);
+  Command_AddCmd("u", Cmd__Up);
+  Command_AddCmd("d", Cmd__Down);
+  Command_AddCmd("l", Cmd__Left);
+  Command_AddCmd("r", Cmd__Right);
 }
 
 /******************************************************************************
@@ -162,8 +189,16 @@ void Direction_Update()
        
        // Check LEFT-RIGHT
        
-       xfUpDownWeight = Direction__WeightLeftRight();
-       
+       xfLeftRightWeight = Direction__WeightLeftRight();
+     #if DEBUG  
+         Serial.print("VERTICAL: ");
+         Serial.print(xfUpDownWeight, 4);
+  
+         Serial.print("    HORIZONTAL: ");
+         Serial.print(xfLeftRightWeight, 4);
+  
+         Serial.print("\r\n");  
+     #endif
        // Decide which, if any, direction to assign
        
        if ((abs(xfUpDownWeight) < 1.0) && 
@@ -172,7 +207,8 @@ void Direction_Update()
          
          // No direction detected
          
-         Direction__SetState(DIRECTION_NONE);
+         // Direction__SetState(DIRECTION_NONE);
+         break;
        }
        
        else if (abs(xfUpDownWeight) > abs(xfLeftRightWeight))
@@ -180,9 +216,14 @@ void Direction_Update()
          
          // UP-DOWN detected. A negative weight is a DOWN,
          // a positive weight is an UP.
-         
-         Direction__SetState((xfUpDownWeight < 0.0) ? 
-                                   DIRECTION_DOWN : DIRECTION_UP);
+         if (xfUpDownWeight < 0.0)
+         {
+           Direction__SetState(DIRECTION_DOWN);
+         }
+         else
+         {
+           Direction__SetState(DIRECTION_UP);
+         }
        }
        
        else
@@ -191,8 +232,14 @@ void Direction_Update()
          // LEFT-RIGHT detected. A negative weight is a LEFT,
          // a positive weight is a RIGHT.
          
-         Direction__SetState((xfLeftRightWeight < 0.0) ? 
-                                DIRECTION_LEFT : DIRECTION_RIGHT);
+         if (xfLeftRightWeight < 0.0)
+         {
+           Direction__SetState(DIRECTION_LEFT);
+         }
+         else
+         {
+           Direction__SetState(DIRECTION_RIGHT);
+         }
        }
       
        break; 
@@ -200,7 +247,7 @@ void Direction_Update()
     
     // If UP was read, check for a drop back to idle.
     // If DOWN was read, check for a rise back to idle.
-     
+    
     case DIRECTION_UP:
     case DIRECTION_DOWN:
     {
@@ -210,6 +257,16 @@ void Direction_Update()
        
        xfDelta = abs(Direction__msUpDown.sfCurrVoltage - 
                      Direction__msUpDown.sfPrevVoltage);
+                     
+       #if DEBUG 
+         Serial.print("VERTICAL: ");
+         Serial.print(xfDelta, 4);
+         
+         Serial.print("     THRESHOLD: ");
+         Serial.print(Direction__mafThreshold[DIRECTION_NONE], 4);
+  
+         Serial.print("\r\n");  
+       #endif
                      
        // Check against threshold
        
@@ -237,6 +294,16 @@ void Direction_Update()
        xfDelta = abs(Direction__msLeftRight.sfCurrVoltage - 
                      Direction__msLeftRight.sfPrevVoltage);
                      
+       #if DEBUG  
+         Serial.print("HORIZONTAL: ");
+         Serial.print(xfDelta, 4);
+         
+         Serial.print("     THRESHOLD: ");
+         Serial.print(Direction__mafThreshold[DIRECTION_NONE], 4);
+  
+         Serial.print("\r\n");  
+       #endif
+                     
        // Check against threshold
        
        if (xfDelta >= Direction__mafThreshold[DIRECTION_NONE])
@@ -244,11 +311,13 @@ void Direction_Update()
           
          // Threshold exceeded
          
+         
          Direction__SetState(DIRECTION_NONE);
        }
        
        break; 
     }
+    
   }
   
 }
@@ -306,6 +375,13 @@ static float Direction__WeightUpDown()
     // Flip the sign, as negative weights correspond to DOWN
     
     xfWeight = xfWeight * -1.0f;
+  }
+  
+  // Ignore states
+  
+  if (abs(xfWeight) > 2.5)
+  {
+    xfWeight = 0;
   }
   
   // Return the result
@@ -369,6 +445,13 @@ static float Direction__WeightLeftRight()
     xfWeight = xfWeight * -1.0f;
   }
   
+  // Ignore spikes
+  
+  if (abs(xfWeight) > 2.5)
+  {
+    xfWeight = 0;
+  }
+  
   // Return the result
   
   return xfWeight;
@@ -404,12 +487,15 @@ static void Direction__SetState(Direction_t zeDir)
     // we set it again here as we may need to adjust the delta as
     // the use time progresses and the voltage drifts.
     
-    Direction__mafThreshold[DIRECTION_NONE] = Direction__mafThreshold[zeDir];    
+    Direction__mafThreshold[DIRECTION_NONE] = 
+                              Direction__mafThreshold[zeDir] * 0.8f;    
   }
   
   // Finally update the state variable
   
-  Direction__meState == zeDir;
+  Direction__meState = zeDir;
+  
+  Direction_BroadcastState();
 }
 
 /******************************************************************************
@@ -449,12 +535,184 @@ void Direction_BroadcastState()
   // Send the apropriate character. Using println for the automatic
   // \r\n.
   
-  Serial.println(Direction__mkanSerialChars[Direction__meState]);
+  Serial.println(Direction__manSerialChars[Direction__meState]);
 }
 
 
 // ***** Command Definitions **************************************************
 
+/******************************************************************************
+*
+*    /name       Cmd__Idle
+*
+*    /purpose    Set the resting voltage
+*
+*    /ret        void
+*
+******************************************************************************/
 
+static void Cmd__Idle(String znArg)
+{
+  
+   // First update the analog readings
+  
+   Analog_Update();
+   
+   // Set the Idle voltages for both the Horizontal and Vertical Circuits
+   
+   Direction__mfUpDownResting = Analog_ReadVolts(VERTICAL);
+   Direction__mfLeftRightResting = Analog_ReadVolts(HORIZONTAL);
+}
 
+/******************************************************************************
+*
+*    /name       Cmd__Up
+*
+*    /purpose    Set the UP threshold
+*
+*    /ret        void
+*
+******************************************************************************/
+
+static void Cmd__Up(String znArg)
+{
+   float xfVoltage;
+  
+   // First update the analog readings
+  
+   Analog_Update();
+   
+   // Read the current voltage, known UP due to application instructions
+   
+   xfVoltage = Analog_ReadVolts(VERTICAL); 
+   
+   // Set the threshold to the positive differential between the current
+   // reading and the known idle reading and scale down by the scale factor.
+  
+   Direction__mafThreshold[DIRECTION_UP] = 
+          abs(xfVoltage - Direction__mfUpDownResting) * THRESHOLD_SCALEDOWN;
+          
+   // DEBUG - Print the setting
+   
+   #if DEBUG
+         Serial.print("UP Threshold set to: ");
+         Serial.print(Direction__mafThreshold[DIRECTION_UP], 4);
+  
+         Serial.print("\r\n");  
+   #endif
+}
+
+/******************************************************************************
+*
+*    /name       Cmd__Down
+*
+*    /purpose    Set the DOWN threshold
+*
+*    /ret        void
+*
+******************************************************************************/
+
+static void Cmd__Down(String znArg)
+{
+   float xfVoltage;
+  
+   // First update the analog readings
+  
+   Analog_Update();
+   
+   // Read the current voltage, known DOWN due to application instructions
+   
+   xfVoltage = Analog_ReadVolts(VERTICAL); 
+   
+   // Set the threshold to the positive differential between the current
+   // reading and the known idle reading and scale down by the scale factor.
+  
+   Direction__mafThreshold[DIRECTION_DOWN] = 
+          abs(xfVoltage - Direction__mfUpDownResting) * THRESHOLD_SCALEDOWN;
+          
+   // DEBUG - Print the setting
+   
+   #if DEBUG
+         Serial.print("DOWN Threshold set to: ");
+         Serial.print(Direction__mafThreshold[DIRECTION_DOWN], 4);
+  
+         Serial.print("\r\n");  
+   #endif
+}
+
+/******************************************************************************
+*
+*    /name       Cmd__Left
+*
+*    /purpose    Set the LEFT threshold
+*
+*    /ret        void
+*
+******************************************************************************/
+
+static void Cmd__Left(String znArg)
+{
+   float xfVoltage;
+  
+   // First update the analog readings
+  
+   Analog_Update();
+   
+   // Read the current voltage, known DOWN due to application instructions
+   
+   xfVoltage = Analog_ReadVolts(HORIZONTAL); 
+   
+   // Set the threshold to the positive differential between the current
+   // reading and the known idle reading and scale down by the scale factor.
+  
+   Direction__mafThreshold[DIRECTION_LEFT] = 
+          abs(xfVoltage - Direction__mfLeftRightResting) * THRESHOLD_SCALEDOWN;
+          
+   // DEBUG - Print the setting
+   
+   #if DEBUG
+         Serial.print("LEFT Threshold set to: ");
+         Serial.print(Direction__mafThreshold[DIRECTION_LEFT], 4);
+  
+         Serial.print("\r\n");  
+   #endif
+}
+
+/******************************************************************************
+*
+*    /name       Cmd__Right
+*
+*    /purpose    Set the RIGHT threshold
+*
+*    /ret        void
+*
+******************************************************************************/
+
+static void Cmd__Right(String znArg)
+{
+   float xfVoltage;
+  
+   // First update the analog readings
+  
+   Analog_Update();
+   
+   // Read the current voltage, known DOWN due to application instructions
+   
+   xfVoltage = Analog_ReadVolts(HORIZONTAL); 
+   
+   // Set the threshold to the positive differential between the current
+   // reading and the known idle reading and scale down by the scale factor.
+  
+   Direction__mafThreshold[DIRECTION_RIGHT] = 
+          abs(xfVoltage - Direction__mfLeftRightResting) * THRESHOLD_SCALEDOWN;
+          
+   // DEBUG - Print the setting
+   
+   #if DEBUG
+         Serial.print("RIGHT Threshold set to: ");
+         Serial.print(Direction__mafThreshold[DIRECTION_RIGHT], 4);
+  
+         Serial.print("\r\n");  
+   #endif
+}
 

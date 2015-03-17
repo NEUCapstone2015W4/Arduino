@@ -50,3 +50,11 @@ Direction_t Direction_GetState();
 void Direction_BroadcastState();
 
 #endif    // !defined _DIRECTION_H
+
+
+// Electrodes:
+//    - LEFT   (-) Red
+//    - RIGHT  (+) Black
+//    - DOWN   (-) Brown
+//    - UP     (+) White
+//    - GND        Green

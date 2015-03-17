@@ -20,6 +20,7 @@
 #include "Analog.h"
 #include "Command.h"
 #include "Direction.h"
+#include "Calibrate.h"
 
 // ***** Local Definitions ****************************************************
 
@@ -50,6 +51,10 @@ void setup()
   
   Command_Initialize((long)BAUD_RATE);
   
+  // Initialize the calibration module
+  
+  Calibration_Initialize();
+  
   // Initialize the Analog Module
   
   Analog_Initialize(ADC_RANGE);
@@ -74,21 +79,32 @@ void loop()
 {
   int i;
   
-#if 0
+#if 1
   
-  // Update Direction reading
+  // If the calibration state is okay, update direction and behave normally.
+  // If not, just wait for the application to set everything up and do nothing.
   
-  Direction_Update();
-  
-  // DEBUG: Broadcast Direction
-  
-  Direction_BroadcastState();
-  
-  // DEBUG: Long delay for now
-  
-  delay(5000);
+  if (Calibration_CheckState())
+  {
+    // Update Direction reading
+    
+    Direction_Update();
+    
+    // DEBUG: Long delay for now
+    
+    delay(500);
+  }
+  else
+  {
+    
+    delay(10);
+  }
   
 #else
+
+  // Update direction reading
+  
+  Analog_Update();
   
   // DEBUG: Print analog voltages to terminal
     

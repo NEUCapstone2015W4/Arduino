@@ -226,6 +226,4 @@ float Analog_ReadVolts (Analog_Channel_t zeChannel)
     return (float)Analog__malParsedData[zeChannel] * ANALOG_SCALE_20;
   }
 }
-
-// ***** Command Definitions **************************************************
   
