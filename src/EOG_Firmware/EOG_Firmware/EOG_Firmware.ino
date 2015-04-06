@@ -92,7 +92,7 @@ void loop()
     
     // DEBUG: Long delay for now
     
-    delay(500);
+    delay(100);
   }
   else
   {

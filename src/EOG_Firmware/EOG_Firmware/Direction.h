@@ -26,12 +26,14 @@ typedef enum Direction_e
   DIRECTION_MAX
 } Direction_t;
 
-// The channel state - contains the current and previous voltage
+// The channel state - contains the current and previous voltage along with the
+// running delta.
 
 typedef struct Direction_Channel_s
 {
   float       sfCurrVoltage;
   float       sfPrevVoltage;
+  float       sfDeltaVoltage;
 } Direction_Channel_t;
 
 // ***** Function Headers *****************************************************
@@ -58,3 +60,5 @@ void Direction_BroadcastState();
 //    - DOWN   (-) Brown
 //    - UP     (+) White
 //    - GND        Green
+
+

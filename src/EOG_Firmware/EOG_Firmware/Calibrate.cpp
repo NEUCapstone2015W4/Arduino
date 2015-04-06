@@ -31,7 +31,7 @@
 
 // ***** Local Definitions ****************************************************
 
-#define DEBUG        1
+#define DEBUG        0
 
 // ***** Local Variables ******************************************************
 
@@ -101,7 +101,7 @@ boolean Calibration_CheckState()
   
   // Any non-OK state is a bad calibration
   
-  return Calibrate__meCalState != CALIBRATION_OK;
+  return Calibrate__meCalState == CALIBRATION_OK;
 }
 
 
