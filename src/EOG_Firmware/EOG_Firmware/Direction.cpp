@@ -41,7 +41,7 @@
 
 #define DEBUG        0
 
-#define THRESHOLD_SCALEDOWN   0.9f
+#define THRESHOLD_SCALEDOWN   0.8f
 
 // Serial Direction characters
 
@@ -219,7 +219,7 @@ void Direction_Update()
          
          // No direction detected
          
-         //Direction__SetState(DIRECTION_NONE);
+         Direction__SetState(DIRECTION_NONE);
          
          break;
        }
@@ -554,6 +554,10 @@ static void Cmd__Idle(String znArg)
    Direction__mfUpDownResting = 0.0;
    Direction__mfLeftRightResting = 0.0;
    
+   // Delay so eyes are settled
+   
+   delay(5000);
+   
    // First update the analog readings
   
    Analog_Update();
@@ -597,6 +601,10 @@ static void Cmd__Idle(String znArg)
 static void Cmd__Up(String znArg)
 {
    float xfVoltage = 0.0;
+   
+   // Delay so eyes are settled
+   
+   delay(5000);
   
    // First update the analog readings
   
@@ -655,6 +663,10 @@ static void Cmd__Down(String znArg)
 {
    float xfVoltage = 0.0;
   
+   // Delay so eyes are settled
+   
+   delay(5000);
+   
    // First update the analog readings
   
    Analog_Update();
@@ -713,6 +725,10 @@ static void Cmd__Left(String znArg)
 {
    float xfVoltage = 0.0;
   
+   // Delay so eyes are settled
+   
+   delay(5000);
+  
    // First update the analog readings
   
    Analog_Update();
@@ -770,6 +786,10 @@ static void Cmd__Left(String znArg)
 static void Cmd__Right(String znArg)
 {
    float xfVoltage = 0.0;
+   
+   // Delay so eyes are settled
+   
+   delay(5000);
   
    // First update the analog readings
   
@@ -826,7 +846,10 @@ static void Cmd__Right(String znArg)
 
 static void Cmd__Clear(String znArg)
 {
-  
+   // Delay so eyes are settled
+   
+   delay(5000);
+   
   // The initial mode should always be looking straight ahead. Set both 
   // channels and direction state accordingly.
   
